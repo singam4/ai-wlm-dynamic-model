@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI DLL Dynamic Model</title>
+<style>
+:root {
+  --background: #fbfbfc;
+  --foreground: #1d2430;
+  --border: #d4dae3;
+  --viz-series-1: #2563eb;
+  --viz-series-2: #059669;
+  --viz-series-3: #7c3aed;
+  --viz-series-4: #dc2626;
+  --viz-series-5: #d97706;
+  --viz-series-6: #0891b2;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #11151c;
+    --foreground: #e8edf5;
+    --border: #364152;
+    --viz-series-1: #60a5fa;
+    --viz-series-2: #34d399;
+    --viz-series-3: #a78bfa;
+    --viz-series-4: #f87171;
+    --viz-series-5: #fbbf24;
+    --viz-series-6: #22d3ee;
+  }
+}
+html { background: var(--background); color: var(--foreground); }
+body { margin: 0; padding: 24px; background: var(--background); }
+main { max-width: 1120px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<main>
+<div id="ai-wlm-dynamic-model" class="ai-wlm-sim">
+  <div class="ai-wlm-header">
+    <div>
+      <div class="ai-wlm-title">AI DLL dynamic model</div>
+      <div class="ai-wlm-subtitle">Same workload, three admission strategies</div>
+    </div>
+    <div class="ai-wlm-controls">
+      <label>
+        <span>Scenario</span>
+        <select data-control="scenario">
+          <option value="dashboard">Dashboard burst</option>
+          <option value="etl">ETL collision</option>
+          <option value="joins">Join-heavy storm</option>
+          <option value="shape">Cheap flood, then complex flood</option>
+        </select>
+      </label>
+      <label>
+        <span>Spike</span>
+        <input data-control="intensity" type="range" min="0.7" max="2.2" step="0.1" value="1.4">
+        <output data-output="intensity">1.4x</output>
+      </label>
+      <label>
+        <span>Startup</span>
+        <input data-control="startup" type="range" min="8" max="35" step="1" value="25">
+        <output data-output="startup">25s</output>
+      </label>
+      <button type="button" data-control="play" aria-pressed="true">Pause</button>
+    </div>
+  </div>
+  <div class="ai-wlm-legend" aria-hidden="true">
+    <span><i data-swatch="wait"></i>waiting queries</span>
+    <span><i data-swatch="replica"></i>active replicas</span>
+    <span><i data-swatch="fail"></i>failures</span>
+  </div>
+  <svg class="ai-wlm-chart" role="img" aria-label="Simulation comparing no dynamic load limiting, reactive dynamic load limiting, and proactive AI dynamic load limiting over time"></svg>
+  <div class="ai-wlm-detail" aria-live="polite"></div>
+</div>
+
+<style>
+  #ai-wlm-dynamic-model {
+    color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    width: 100%;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 14px;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-subtitle {
+    color: color-mix(in srgb, var(--foreground) 68%, transparent);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-controls {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    justify-content: flex-end;
+  }
+
+  #ai-wlm-dynamic-model label {
+    align-items: center;
+    display: grid;
+    gap: 3px;
+    grid-template-columns: auto auto;
+  }
+
+  #ai-wlm-dynamic-model label > span {
+    color: color-mix(in srgb, var(--foreground) 72%, transparent);
+    font-size: 11px;
+    grid-column: 1 / -1;
+  }
+
+  #ai-wlm-dynamic-model select,
+  #ai-wlm-dynamic-model button {
+    background: color-mix(in srgb, var(--background) 92%, var(--foreground) 8%);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--foreground);
+    font: inherit;
+    font-size: 12px;
+    min-height: 30px;
+    padding: 4px 8px;
+  }
+
+  #ai-wlm-dynamic-model input[type="range"] {
+    accent-color: var(--viz-series-2);
+    inline-size: 96px;
+  }
+
+  #ai-wlm-dynamic-model output {
+    color: color-mix(in srgb, var(--foreground) 74%, transparent);
+    font-size: 12px;
+    min-width: 34px;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-legend {
+    align-items: center;
+    color: color-mix(in srgb, var(--foreground) 76%, transparent);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12px;
+    gap: 12px;
+    margin: 2px 0 6px;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-legend span {
+    align-items: center;
+    display: inline-flex;
+    gap: 5px;
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-legend i {
+    display: inline-block;
+    height: 3px;
+    width: 18px;
+  }
+
+  #ai-wlm-dynamic-model [data-swatch="wait"] {
+    background: var(--viz-series-1);
+  }
+
+  #ai-wlm-dynamic-model [data-swatch="replica"] {
+    background: var(--viz-series-2);
+  }
+
+  #ai-wlm-dynamic-model [data-swatch="fail"] {
+    background: var(--viz-series-4);
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-chart {
+    display: block;
+    inline-size: 100%;
+    min-height: 390px;
+  }
+
+  #ai-wlm-dynamic-model text {
+    fill: var(--foreground);
+    font-size: 12px;
+  }
+
+  #ai-wlm-dynamic-model .axis-title {
+    font-size: 12px;
+  }
+
+  #ai-wlm-dynamic-model .muted {
+    fill: color-mix(in srgb, var(--foreground) 60%, transparent);
+  }
+
+  #ai-wlm-dynamic-model .ai-wlm-detail {
+    color: color-mix(in srgb, var(--foreground) 80%, transparent);
+    font-size: 12px;
+    line-height: 1.35;
+    min-height: 18px;
+    padding-top: 6px;
+  }
+
+  @media (max-width: 560px) {
+    #ai-wlm-dynamic-model .ai-wlm-header {
+      display: block;
+    }
+
+    #ai-wlm-dynamic-model .ai-wlm-controls {
+      justify-content: flex-start;
+      margin-top: 10px;
+    }
+
+    #ai-wlm-dynamic-model select {
+      max-width: 210px;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const root = document.getElementById("ai-wlm-dynamic-model");
+    if (!root) {
+      return;
+    }
+
+    const svg = root.querySelector(".ai-wlm-chart");
+    const detail = root.querySelector(".ai-wlm-detail");
+    const controls = {
+      scenario: root.querySelector('[data-control="scenario"]'),
+      intensity: root.querySelector('[data-control="intensity"]'),
+      startup: root.querySelector('[data-control="startup"]'),
+      play: root.querySelector('[data-control="play"]')
+    };
+    const outputs = {
+      intensity: root.querySelector('[data-output="intensity"]'),
+      startup: root.querySelector('[data-output="startup"]')
+    };
+
+    const totalSeconds = 180;
+    const slotsPerReplica = 8;
+    const maxReplicas = 5;
+    const maxWaitSeconds = 75;
+    const memPerReplica = 12.5;
+    const modes = [
+      { key: "static", label: "No DLL", note: "fixed capacity" },
+      { key: "reactive", label: "Reactive DLL", note: "wait, then scale" },
+      { key: "ai", label: "AI DLL", note: "forecast, shape, then wait" }
+    ];
+    const scenarioMeta = {
+      dashboard: { peak: 62, aiNeed: 2.0 },
+      etl: { peak: 64, aiNeed: 3.0 },
+      joins: { peak: 62, aiNeed: 4.0 },
+      shape: { peak: 110, aiNeed: 3.2 }
+    };
+
+    let model = null;
+    let currentSecond = 0;
+    let playing = true;
+    let timer = null;
+
+    function hash(seed) {
+      const x = Math.sin(seed * 12.9898) * 43758.5453;
+      return x - Math.floor(x);
+    }
+
+    function gaussian(t, center, width) {
+      const d = (t - center) / width;
+      return Math.exp(-0.5 * d * d);
+    }
+
+    function countFromRate(rate, seed) {
+      const whole = Math.floor(rate);
+      return whole + (hash(seed) < rate - whole ? 1 : 0);
+    }
+
+    function makeQuery(id, arrival, kind, scenario) {
+      const r = hash(id * 7 + arrival * 13);
+      const joinHeavy = scenario === "joins" || (scenario === "shape" && arrival > 85);
+      const duration =
+        kind === "cheap"
+          ? 2 + Math.floor(r * 5)
+          : (joinHeavy ? 42 : 26) + Math.floor(r * (joinHeavy ? 48 : 34));
+      const memory = kind === "cheap" ? 0.8 + r * 0.5 : (joinHeavy ? 4.2 : 3.1) + r * 1.4;
+      return { id, arrival, kind, duration, memory };
+    }
+
+    function generateWorkload(scenario, intensity) {
+      const workload = Array.from({ length: totalSeconds + 1 }, () => []);
+      let id = 1;
+      for (let t = 0; t <= totalSeconds; t++) {
+        let cheapRate = 0.12;
+        let heavyRate = 0.015;
+        if (scenario === "dashboard") {
+          cheapRate += gaussian(t, 62, 13) * intensity * 3.2;
+          heavyRate += gaussian(t, 72, 18) * intensity * 0.22;
+        } else if (scenario === "etl") {
+          cheapRate += gaussian(t, 66, 16) * intensity * 1.2;
+          heavyRate += gaussian(t, 58, 20) * intensity * 0.82;
+        } else if (scenario === "joins") {
+          cheapRate += gaussian(t, 62, 20) * intensity * 0.35;
+          heavyRate += gaussian(t, 62, 17) * intensity * 1.38;
+        } else {
+          cheapRate += gaussian(t, 48, 11) * intensity * 2.8;
+          heavyRate += gaussian(t, 112, 12) * intensity * 1.08;
+        }
+        const cheapCount = countFromRate(cheapRate, t * 17 + 3);
+        const heavyCount = countFromRate(heavyRate, t * 19 + 5);
+        for (let i = 0; i < cheapCount; i++) {
+          workload[t].push(makeQuery(id++, t, "cheap", scenario));
+        }
+        for (let i = 0; i < heavyCount; i++) {
+          workload[t].push(makeQuery(id++, t, "heavy", scenario));
+        }
+      }
+      return workload;
+    }
+
+    function percentile(values, p) {
+      if (!values.length) {
+        return 0;
+      }
+      const sorted = values.slice().sort((a, b) => a - b);
+      const idx = Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p));
+      return sorted[idx];
+    }
+
+    function simulateMode(mode, workload, settings) {
+      let replicas = 1;
+      let lastScaleAt = -999;
+      let prewarmDone = false;
+      let completed = 0;
+      let failed = 0;
+      let idleReplicaSeconds = 0;
+      let failedWorkSeconds = 0;
+      const running = [];
+      const waitQueue = [];
+      const pending = [];
+      const waitTimes = [];
+      const series = [];
+
+      function activeAndPending() {
+        return replicas + pending.length;
+      }
+
+      function scheduleReplica(t, count, reason) {
+        let remaining = Math.min(count, maxReplicas - activeAndPending());
+        while (remaining > 0) {
+          pending.push({ readyAt: t + settings.startup + (count - remaining) * 3, reason });
+          remaining--;
+        }
+        if (count > 0) {
+          lastScaleAt = t;
+        }
+      }
+
+      function runningMemory() {
+        return running.reduce((sum, q) => sum + q.memory, 0);
+      }
+
+      function canFit(query) {
+        return running.length < replicas * slotsPerReplica
+          && runningMemory() + query.memory <= replicas * memPerReplica;
+      }
+
+      function selectIndex(t) {
+        if (mode !== "ai") {
+          return 0;
+        }
+        const oldHeavy = waitQueue.findIndex(q => q.kind === "heavy" && t - q.arrival >= 28 && canFit(q));
+        if (oldHeavy >= 0) {
+          return oldHeavy;
+        }
+        const cheapFit = waitQueue.findIndex(q => q.kind === "cheap" && canFit(q));
+        if (cheapFit >= 0) {
+          return cheapFit;
+        }
+        const anyFit = waitQueue.findIndex(q => canFit(q));
+        return anyFit >= 0 ? anyFit : 0;
+      }
+
+      for (let t = 0; t <= totalSeconds; t++) {
+        for (let i = running.length - 1; i >= 0; i--) {
+          if (running[i].endAt <= t) {
+            running.splice(i, 1);
+            completed++;
+          }
+        }
+        for (let i = pending.length - 1; i >= 0; i--) {
+          if (pending[i].readyAt <= t) {
+            pending.splice(i, 1);
+            replicas++;
+          }
+        }
+
+        for (const query of workload[t]) {
+          waitQueue.push(query);
+        }
+
+        if (mode === "ai") {
+          const meta = scenarioMeta[settings.scenario];
+          const desired = Math.min(maxReplicas, Math.max(1, Math.ceil(meta.aiNeed * settings.intensity)));
+          const latestStart = Math.max(1, meta.peak - settings.startup + 2);
+          if (!prewarmDone && t >= latestStart) {
+            scheduleReplica(t, Math.max(0, desired - activeAndPending()), "forecast");
+            prewarmDone = true;
+          }
+          if (waitQueue.length > slotsPerReplica && activeAndPending() < maxReplicas && t - lastScaleAt > 10) {
+            scheduleReplica(t, 1, "fallback");
+          }
+        } else if (mode === "reactive") {
+          if (waitQueue.length > Math.max(3, slotsPerReplica * 0.6)
+            && activeAndPending() < maxReplicas
+            && t - lastScaleAt > Math.max(9, settings.startup * 0.45)) {
+            scheduleReplica(t, 1, "waiters");
+          }
+        }
+
+        for (let i = waitQueue.length - 1; i >= 0; i--) {
+          if (mode !== "static" && t - waitQueue[i].arrival > maxWaitSeconds) {
+            waitQueue.splice(i, 1);
+            failed++;
+          }
+        }
+
+        let guard = 0;
+        while (waitQueue.length && running.length < replicas * slotsPerReplica && guard++ < 200) {
+          const idx = selectIndex(t);
+          const query = waitQueue[idx];
+          if (!canFit(query)) {
+            if (mode === "static") {
+              waitQueue.splice(idx, 1);
+              failed++;
+              failedWorkSeconds += Math.max(4, query.duration * 0.25);
+              continue;
+            }
+            break;
+          }
+          waitQueue.splice(idx, 1);
+          waitTimes.push(t - query.arrival);
+          running.push({ ...query, endAt: t + query.duration });
+        }
+
+        if (mode === "static" && waitQueue.length) {
+          for (const query of waitQueue) {
+            failed++;
+            if (query.kind === "heavy") {
+              failedWorkSeconds += Math.max(4, query.duration * 0.22);
+            }
+          }
+          waitQueue.length = 0;
+        }
+
+        idleReplicaSeconds += Math.max(0, replicas * slotsPerReplica - running.length) / slotsPerReplica;
+        series.push({
+          t,
+          replicas,
+          pending: pending.length,
+          running: running.length,
+          waiters: waitQueue.length,
+          failed,
+          completed,
+          memory: runningMemory()
+        });
+      }
+
+      return {
+        mode,
+        series,
+        metrics: {
+          completed,
+          failed,
+          p95Wait: percentile(waitTimes, 0.95),
+          avgWait: waitTimes.length ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length : 0,
+          wasted: idleReplicaSeconds + failedWorkSeconds / slotsPerReplica
+        }
+      };
+    }
+
+    function simulate() {
+      const settings = {
+        scenario: controls.scenario.value,
+        intensity: Number(controls.intensity.value),
+        startup: Number(controls.startup.value)
+      };
+      const workload = generateWorkload(settings.scenario, settings.intensity);
+      return {
+        settings,
+        workload,
+        runs: modes.map(mode => simulateMode(mode.key, workload, settings))
+      };
+    }
+
+    function pathFromPoints(points) {
+      return points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+    }
+
+    function areaFromPoints(points, baseline) {
+      if (!points.length) {
+        return "";
+      }
+      const forward = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+      const last = points[points.length - 1][0].toFixed(1);
+      const first = points[0][0].toFixed(1);
+      return `${forward} L ${last} ${baseline.toFixed(1)} L ${first} ${baseline.toFixed(1)} Z`;
+    }
+
+    function stepPath(points) {
+      if (!points.length) {
+        return "";
+      }
+      let d = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
+      for (let i = 1; i < points.length; i++) {
+        d += ` H ${points[i][0].toFixed(1)} V ${points[i][1].toFixed(1)}`;
+      }
+      return d;
+    }
+
+    function svgEl(name, attrs = {}) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) {
+        el.setAttribute(key, value);
+      }
+      return el;
+    }
+
+    function addText(parent, text, x, y, attrs = {}) {
+      const el = svgEl("text", { x, y, ...attrs });
+      el.textContent = text;
+      parent.appendChild(el);
+      return el;
+    }
+
+    function draw() {
+      if (!model) {
+        return;
+      }
+
+      const width = Math.max(360, Math.round(root.getBoundingClientRect().width || 740));
+      const height = 390;
+      const left = width < 480 ? 92 : 108;
+      const right = 18;
+      const top = 24;
+      const rowHeight = 86;
+      const rowGap = 18;
+      const plotWidth = width - left - right;
+      const plotBottom = top + modes.length * rowHeight + (modes.length - 1) * rowGap;
+      const x = t => left + (t / totalSeconds) * plotWidth;
+      const maxWaiters = Math.max(
+        1,
+        ...model.runs.flatMap(run => run.series.map(point => point.waiters))
+      );
+      const maxRunning = Math.max(
+        slotsPerReplica,
+        ...model.runs.flatMap(run => run.series.map(point => point.running))
+      );
+
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("height", height);
+      svg.innerHTML = "";
+
+      const defs = svgEl("defs");
+      defs.innerHTML = `
+        <clipPath id="ai-wlm-frame-clip">
+          <rect x="${left}" y="${top - 2}" width="${plotWidth}" height="${plotBottom - top + 8}"></rect>
+        </clipPath>
+      `;
+      svg.appendChild(defs);
+
+      addText(svg, "time (seconds)", left + plotWidth / 2, height - 8, {
+        "text-anchor": "middle",
+        class: "axis-title"
+      });
+
+      for (let tick = 0; tick <= totalSeconds; tick += 30) {
+        const tx = x(tick);
+        svg.appendChild(svgEl("line", {
+          x1: tx,
+          x2: tx,
+          y1: top - 4,
+          y2: plotBottom + 6,
+          stroke: "var(--border)",
+          "stroke-width": "1"
+        }));
+        addText(svg, String(tick), tx, plotBottom + 22, {
+          "text-anchor": "middle",
+          class: "muted"
+        });
+      }
+
+      model.runs.forEach((run, rowIndex) => {
+        const y0 = top + rowIndex * (rowHeight + rowGap);
+        const frameHeight = 70;
+        const base = y0 + frameHeight;
+        const yWait = value => base - Math.min(1, value / maxWaiters) * (frameHeight - 10);
+        const yReplicas = value => base - Math.min(1, value / maxReplicas) * (frameHeight - 10);
+        const yRunning = value => base - Math.min(1, value / maxRunning) * (frameHeight - 10);
+
+        addText(svg, modes[rowIndex].label, 8, y0 + 14, {
+          "font-weight": "700"
+        });
+        addText(svg, modes[rowIndex].note, 8, y0 + 30, {
+          class: "muted"
+        });
+        addText(svg, `p95 ${Math.round(run.metrics.p95Wait)}s`, 8, y0 + 48, {
+          class: "muted"
+        });
+        addText(svg, `fail ${run.metrics.failed}`, 8, y0 + 64, {
+          class: "muted"
+        });
+        addText(svg, `waste ${Math.round(run.metrics.wasted)}`, 8, y0 + 80, {
+          class: "muted"
+        });
+
+        svg.appendChild(svgEl("rect", {
+          x: left,
+          y: y0,
+          width: plotWidth,
+          height: frameHeight,
+          fill: "transparent",
+          stroke: "var(--border)",
+          "stroke-width": "1",
+          "data-chart-frame": "true"
+        }));
+
+        const waitPoints = run.series.map(point => [x(point.t), yWait(point.waiters)]);
+        const runningPoints = run.series.map(point => [x(point.t), yRunning(point.running)]);
+        const replicaPoints = run.series.map(point => [x(point.t), yReplicas(point.replicas)]);
+
+        svg.appendChild(svgEl("path", {
+          d: areaFromPoints(waitPoints, base),
+          fill: "var(--viz-series-1)",
+          opacity: "0.14"
+        }));
+        svg.appendChild(svgEl("path", {
+          d: pathFromPoints(waitPoints),
+          fill: "none",
+          stroke: "var(--viz-series-1)",
+          "stroke-width": "2"
+        }));
+        svg.appendChild(svgEl("path", {
+          d: pathFromPoints(runningPoints),
+          fill: "none",
+          stroke: "var(--viz-series-3)",
+          "stroke-width": "1.5",
+          opacity: "0.74"
+        }));
+        svg.appendChild(svgEl("path", {
+          d: stepPath(replicaPoints),
+          fill: "none",
+          stroke: "var(--viz-series-2)",
+          "stroke-width": "2.4"
+        }));
+
+        let previousFailures = 0;
+        for (const point of run.series) {
+          const delta = point.failed - previousFailures;
+          previousFailures = point.failed;
+          if (delta <= 0) {
+            continue;
+          }
+          svg.appendChild(svgEl("circle", {
+            cx: x(point.t),
+            cy: base - 4,
+            r: Math.min(7, 2.5 + delta),
+            fill: "var(--viz-series-4)",
+            opacity: "0.86"
+          }));
+        }
+      });
+
+      const cursorX = x(currentSecond);
+      svg.appendChild(svgEl("line", {
+        x1: cursorX,
+        x2: cursorX,
+        y1: top - 8,
+        y2: plotBottom + 8,
+        stroke: "var(--viz-series-5)",
+        "stroke-width": "2",
+        "stroke-dasharray": "4 4"
+      }));
+      addText(svg, `${currentSecond}s`, Math.min(width - 18, cursorX + 5), top - 10, {
+        class: "muted"
+      });
+
+      updateDetail();
+    }
+
+    function updateDetail() {
+      const point = key => {
+        const run = model.runs.find(item => item.mode === key);
+        return run.series[Math.min(currentSecond, run.series.length - 1)];
+      };
+      const staticPoint = point("static");
+      const reactivePoint = point("reactive");
+      const aiPoint = point("ai");
+      detail.textContent =
+        `At ${currentSecond}s: no DLL failed ${staticPoint.failed}; reactive DLL has ${reactivePoint.waiters} waiting and ${reactivePoint.replicas} replicas; AI DLL has ${aiPoint.waiters} waiting and ${aiPoint.replicas} replicas.`;
+    }
+
+    function recompute() {
+      outputs.intensity.textContent = `${Number(controls.intensity.value).toFixed(1)}x`;
+      outputs.startup.textContent = `${controls.startup.value}s`;
+      model = simulate();
+      currentSecond = Math.min(currentSecond, totalSeconds);
+      draw();
+    }
+
+    function tick() {
+      if (!playing) {
+        return;
+      }
+      currentSecond = currentSecond >= totalSeconds ? 0 : currentSecond + 1;
+      draw();
+    }
+
+    controls.scenario.addEventListener("change", () => {
+      currentSecond = 0;
+      recompute();
+    });
+    controls.intensity.addEventListener("input", recompute);
+    controls.startup.addEventListener("input", recompute);
+    controls.play.addEventListener("click", () => {
+      playing = !playing;
+      controls.play.textContent = playing ? "Pause" : "Run";
+      controls.play.setAttribute("aria-pressed", String(playing));
+    });
+
+    new ResizeObserver(draw).observe(root);
+    recompute();
+    timer = setInterval(tick, 130);
+    root.addEventListener("DOMNodeRemoved", () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    }, { once: true });
+  })();
+</script>
+
+</main>
+</body>
+</html>
