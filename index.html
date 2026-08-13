@@ -1120,7 +1120,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const modes = [
       { key: &quot;static&quot;, label: &quot;No DLL&quot;, note: &quot;fixed capacity&quot; },
       { key: &quot;reactive&quot;, label: &quot;Reactive DLL&quot;, note: &quot;wait, then scale&quot; },
-      { key: &quot;cold_ai&quot;, label: &quot;AI DLL, Global Prior&quot;, note: &quot;global prior + live shape&quot; },
+      { key: &quot;cold_ai&quot;, label: &quot;AI DLL, Global Prior&quot;, note: &quot;conservative prior + live shape&quot; },
       { key: &quot;learned_ai&quot;, label: &quot;AI DLL, Local Learning&quot;, note: &quot;global prior + local history&quot; }
     ];
     const observedSample = {
@@ -1642,10 +1642,10 @@ html&gt;body{padding:0}&lt;/style&gt;
       if (controls.scenario.value === &quot;observe&quot;) {
         outputs.sourceNote.textContent = &quot;Observed DaaS signal counts and replica-create latency normalized into the same 180s model&quot;;
         calibration.textContent =
-          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. Global-prior AI uses the shipped prior plus live shape; local-learning AI adds persisted tenant/project history. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
+          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. Global-prior AI is conservative, so active replicas may track Reactive while it mainly shapes admission/routing; local-learning AI adds persisted tenant/project history. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
       } else {
         outputs.sourceNote.textContent = &quot;Synthetic workload for comparing admission strategies&quot;;
-        calibration.textContent = &quot;Synthetic preset: global-prior AI starts from the shipped prior; local-learning AI adds persisted tenant/project history. Extreme load plus slow replica create will still show tail wait when the forecast horizon is shorter than create-to-useful-capacity time.&quot;;
+        calibration.textContent = &quot;Synthetic preset: global-prior AI is conservative, so active replicas may track Reactive while it mainly shapes admission/routing; local-learning AI adds persisted tenant/project history. Extreme load plus slow replica create will still show tail wait when forecast horizon is shorter than create-to-useful-capacity time.&quot;;
       }
     }
 
