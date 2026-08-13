@@ -907,7 +907,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/label&gt;
       &lt;label&gt;
         &lt;span&gt;Workload&lt;/span&gt;
-        &lt;input data-control=&quot;intensity&quot; type=&quot;range&quot; min=&quot;0.7&quot; max=&quot;20&quot; step=&quot;0.1&quot; value=&quot;1.0&quot;&gt;
+        &lt;input data-control=&quot;intensity&quot; type=&quot;range&quot; min=&quot;0.7&quot; max=&quot;100&quot; step=&quot;0.1&quot; value=&quot;1.0&quot;&gt;
         &lt;output data-output=&quot;intensity&quot;&gt;1.0x&lt;/output&gt;
       &lt;/label&gt;
       &lt;label&gt;
@@ -917,7 +917,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;/label&gt;
       &lt;label&gt;
         &lt;span&gt;Allowed replicas&lt;/span&gt;
-        &lt;input data-control=&quot;max-replicas&quot; type=&quot;range&quot; min=&quot;4&quot; max=&quot;256&quot; step=&quot;1&quot; value=&quot;12&quot;&gt;
+        &lt;input data-control=&quot;max-replicas&quot; type=&quot;range&quot; min=&quot;4&quot; max=&quot;1024&quot; step=&quot;1&quot; value=&quot;12&quot;&gt;
         &lt;output data-output=&quot;max-replicas&quot;&gt;12&lt;/output&gt;
       &lt;/label&gt;
       &lt;button type=&quot;button&quot; data-control=&quot;play&quot; aria-pressed=&quot;true&quot;&gt;Pause&lt;/button&gt;
@@ -1258,6 +1258,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       let failed = 0;
       let idleReplicaSeconds = 0;
       let failedWorkSeconds = 0;
+      let currentMemory = 0;
       const running = [];
       const waitQueue = [];
       const pending = [];
@@ -1303,7 +1304,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
 
       function runningMemory() {
-        return running.reduce((sum, q) =&gt; sum + q.memory, 0);
+        return currentMemory;
       }
 
       function canFit(query) {
@@ -1333,6 +1334,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       for (let t = 0; t &lt;= totalSeconds; t++) {
         for (let i = running.length - 1; i &gt;= 0; i--) {
           if (running[i].endAt &lt;= t) {
+            currentMemory -= running[i].memory;
             running.splice(i, 1);
             completed++;
           }
@@ -1390,7 +1392,8 @@ html&gt;body{padding:0}&lt;/style&gt;
         }
 
         let guard = 0;
-        while (waitQueue.length &amp;&amp; running.length &lt; replicas * modeSlotsPerReplica &amp;&amp; guard++ &lt; 200) {
+        const admitLimit = Math.max(200, replicas * modeSlotsPerReplica);
+        while (waitQueue.length &amp;&amp; running.length &lt; replicas * modeSlotsPerReplica &amp;&amp; guard++ &lt; admitLimit) {
           const idx = selectIndex(t);
           const query = waitQueue[idx];
           if (!canFit(query)) {
@@ -1410,6 +1413,7 @@ html&gt;body{padding:0}&lt;/style&gt;
           if (!query.breached) {
             waitTimes.push(t - query.arrival);
           }
+          currentMemory += query.memory;
           running.push({ ...query, endAt: t + query.duration });
         }
 
@@ -1695,7 +1699,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       if (controls.scenario.value === &quot;observe&quot;) {
         outputs.sourceNote.textContent = &quot;Observed DaaS signal counts and replica-create latency normalized into the same 180s model&quot;;
         calibration.textContent =
-          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. DLL rows treat overload as wait-SLO breach, not hard query failure. Waiting @180s is unserved work inside this bounded window; increase allowed replicas to test Cloud capacity-policy headroom. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
+          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. DLL rows treat overload as wait-SLO breach, not hard query failure. Waiting @180s is unserved work inside this bounded window; increase allowed replicas to test Cloud capacity-policy headroom. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Use 5x-8x for high adoption and 20x-100x for SAP-scale stress.`;
       } else {
         outputs.sourceNote.textContent = &quot;Synthetic workload for comparing admission strategies&quot;;
         calibration.textContent = &quot;Synthetic preset: DLL rows treat overload as wait-SLO breach, not hard query failure. Waiting @180s is unserved work inside this bounded window; increase allowed replicas to test Cloud capacity-policy headroom. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Extreme load plus slow replica create will still show tail wait when forecast horizon is shorter than create-to-useful-capacity time.&quot;;
