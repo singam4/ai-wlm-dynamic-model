@@ -3,81 +3,937 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI DLL Dynamic Model</title>
-<style>
-:root {
-  --background: #fbfbfc;
-  --foreground: #1d2430;
-  --border: #d4dae3;
-  --viz-series-1: #2563eb;
-  --viz-series-2: #059669;
-  --viz-series-3: #7c3aed;
-  --viz-series-4: #dc2626;
-  --viz-series-5: #d97706;
-  --viz-series-6: #0891b2;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #11151c;
-    --foreground: #e8edf5;
-    --border: #364152;
-    --viz-series-1: #60a5fa;
-    --viz-series-2: #34d399;
-    --viz-series-3: #a78bfa;
-    --viz-series-4: #f87171;
-    --viz-series-5: #fbbf24;
-    --viz-series-6: #22d3ee;
-  }
-}
-html { background: var(--background); color: var(--foreground); }
-body { margin: 0; padding: 24px; background: var(--background); }
-main { max-width: 1120px; margin: 0 auto; }
-</style>
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Ai Wlm Dynamic Model</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
 </head>
 <body>
-<main>
-<div id="ai-wlm-dynamic-model" class="ai-wlm-sim">
-  <div class="ai-wlm-header">
-    <div>
-      <div class="ai-wlm-title">AI DLL dynamic model</div>
-      <div class="ai-wlm-subtitle">Same workload, three admission strategies</div>
-    </div>
-    <div class="ai-wlm-controls">
-      <label>
-        <span>Scenario</span>
-        <select data-control="scenario">
-          <option value="dashboard">Dashboard burst</option>
-          <option value="etl">ETL collision</option>
-          <option value="joins">Join-heavy storm</option>
-          <option value="shape">Cheap flood, then complex flood</option>
-        </select>
-      </label>
-      <label>
-        <span>Spike</span>
-        <input data-control="intensity" type="range" min="0.7" max="2.2" step="0.1" value="1.4">
-        <output data-output="intensity">1.4x</output>
-      </label>
-      <label>
-        <span>Startup</span>
-        <input data-control="startup" type="range" min="8" max="35" step="1" value="25">
-        <output data-output="startup">25s</output>
-      </label>
-      <button type="button" data-control="play" aria-pressed="true">Pause</button>
-    </div>
-  </div>
-  <div class="ai-wlm-legend" aria-hidden="true">
-    <span><i data-swatch="wait"></i>waiting queries</span>
-    <span><i data-swatch="replica"></i>active replicas</span>
-    <span><i data-swatch="fail"></i>failures</span>
-  </div>
-  <svg class="ai-wlm-chart" role="img" aria-label="Simulation comparing no dynamic load limiting, reactive dynamic load limiting, and proactive AI dynamic load limiting over time"></svg>
-  <div class="ai-wlm-detail" aria-live="polite"></div>
-</div>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Ai Wlm Dynamic Model" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Ai Wlm Dynamic Model&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
 
-<style>
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;ai-wlm-dynamic-model&quot; class=&quot;ai-wlm-sim&quot;&gt;
+  &lt;div class=&quot;ai-wlm-header&quot;&gt;
+    &lt;div&gt;
+      &lt;div class=&quot;ai-wlm-title&quot;&gt;AI DLL dynamic model&lt;/div&gt;
+      &lt;div class=&quot;ai-wlm-subtitle&quot; data-output=&quot;source-note&quot;&gt;Same workload, four admission strategies&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;ai-wlm-controls&quot;&gt;
+      &lt;label&gt;
+        &lt;span&gt;Scenario&lt;/span&gt;
+        &lt;select data-control=&quot;scenario&quot;&gt;
+          &lt;option value=&quot;observe&quot; selected&gt;Observed DaaS sample&lt;/option&gt;
+          &lt;option value=&quot;dashboard&quot;&gt;Dashboard burst&lt;/option&gt;
+          &lt;option value=&quot;etl&quot;&gt;ETL collision&lt;/option&gt;
+          &lt;option value=&quot;joins&quot;&gt;Join-heavy storm&lt;/option&gt;
+          &lt;option value=&quot;shape&quot;&gt;Cheap flood, then complex flood&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;span&gt;Workload&lt;/span&gt;
+        &lt;input data-control=&quot;intensity&quot; type=&quot;range&quot; min=&quot;0.7&quot; max=&quot;20&quot; step=&quot;0.1&quot; value=&quot;1.0&quot;&gt;
+        &lt;output data-output=&quot;intensity&quot;&gt;1.0x&lt;/output&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;span&gt;Replica create&lt;/span&gt;
+        &lt;input data-control=&quot;startup&quot; type=&quot;range&quot; min=&quot;20&quot; max=&quot;160&quot; step=&quot;1&quot; value=&quot;48&quot;&gt;
+        &lt;output data-output=&quot;startup&quot;&gt;48s&lt;/output&gt;
+      &lt;/label&gt;
+      &lt;button type=&quot;button&quot; data-control=&quot;play&quot; aria-pressed=&quot;true&quot;&gt;Pause&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;ai-wlm-legend&quot; aria-hidden=&quot;true&quot;&gt;
+    &lt;span&gt;&lt;i data-swatch=&quot;wait&quot;&gt;&lt;/i&gt;waiting queries&lt;/span&gt;
+    &lt;span&gt;&lt;i data-swatch=&quot;running&quot;&gt;&lt;/i&gt;running queries&lt;/span&gt;
+    &lt;span&gt;&lt;i data-swatch=&quot;replica&quot;&gt;&lt;/i&gt;active replicas&lt;/span&gt;
+    &lt;span&gt;&lt;i data-swatch=&quot;fail&quot;&gt;&lt;/i&gt;past wait SLO / fail-fast&lt;/span&gt;
+    &lt;span&gt;p95/p99 wait excludes breached or failed work&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;ai-wlm-calibration&quot; data-output=&quot;calibration&quot;&gt;&lt;/div&gt;
+  &lt;svg class=&quot;ai-wlm-chart&quot; role=&quot;img&quot; aria-label=&quot;Simulation comparing no dynamic load limiting, reactive dynamic load limiting, AI dynamic load limiting with global prior, and AI dynamic load limiting with local learning over time with waiting queries, running queries, active replicas, and wait SLO breaches&quot;&gt;&lt;/svg&gt;
+  &lt;div class=&quot;ai-wlm-detail&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
   #ai-wlm-dynamic-model {
     color: var(--foreground);
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;
     width: 100%;
   }
 
@@ -116,7 +972,7 @@ main { max-width: 1120px; margin: 0 auto; }
     grid-template-columns: auto auto;
   }
 
-  #ai-wlm-dynamic-model label > span {
+  #ai-wlm-dynamic-model label &gt; span {
     color: color-mix(in srgb, var(--foreground) 72%, transparent);
     font-size: 11px;
     grid-column: 1 / -1;
@@ -134,7 +990,7 @@ main { max-width: 1120px; margin: 0 auto; }
     padding: 4px 8px;
   }
 
-  #ai-wlm-dynamic-model input[type="range"] {
+  #ai-wlm-dynamic-model input[type=&quot;range&quot;] {
     accent-color: var(--viz-series-2);
     inline-size: 96px;
   }
@@ -167,22 +1023,26 @@ main { max-width: 1120px; margin: 0 auto; }
     width: 18px;
   }
 
-  #ai-wlm-dynamic-model [data-swatch="wait"] {
+  #ai-wlm-dynamic-model [data-swatch=&quot;wait&quot;] {
     background: var(--viz-series-1);
   }
 
-  #ai-wlm-dynamic-model [data-swatch="replica"] {
+  #ai-wlm-dynamic-model [data-swatch=&quot;replica&quot;] {
     background: var(--viz-series-2);
   }
 
-  #ai-wlm-dynamic-model [data-swatch="fail"] {
+  #ai-wlm-dynamic-model [data-swatch=&quot;running&quot;] {
+    background: var(--viz-series-3);
+  }
+
+  #ai-wlm-dynamic-model [data-swatch=&quot;fail&quot;] {
     background: var(--viz-series-4);
   }
 
   #ai-wlm-dynamic-model .ai-wlm-chart {
     display: block;
     inline-size: 100%;
-    min-height: 390px;
+    min-height: 458px;
   }
 
   #ai-wlm-dynamic-model text {
@@ -206,6 +1066,14 @@ main { max-width: 1120px; margin: 0 auto; }
     padding-top: 6px;
   }
 
+  #ai-wlm-dynamic-model .ai-wlm-calibration {
+    color: color-mix(in srgb, var(--foreground) 70%, transparent);
+    font-size: 12px;
+    line-height: 1.35;
+    min-height: 17px;
+    margin: -2px 0 5px;
+  }
+
   @media (max-width: 560px) {
     #ai-wlm-dynamic-model .ai-wlm-header {
       display: block;
@@ -220,39 +1088,67 @@ main { max-width: 1120px; margin: 0 auto; }
       max-width: 210px;
     }
   }
-</style>
+&lt;/style&gt;
 
-<script>
-  (() => {
-    const root = document.getElementById("ai-wlm-dynamic-model");
+&lt;script&gt;
+  (() =&gt; {
+    const root = document.getElementById(&quot;ai-wlm-dynamic-model&quot;);
     if (!root) {
       return;
     }
 
-    const svg = root.querySelector(".ai-wlm-chart");
-    const detail = root.querySelector(".ai-wlm-detail");
+    const svg = root.querySelector(&quot;.ai-wlm-chart&quot;);
+    const detail = root.querySelector(&quot;.ai-wlm-detail&quot;);
+    const calibration = root.querySelector(&#x27;[data-output=&quot;calibration&quot;]&#x27;);
     const controls = {
-      scenario: root.querySelector('[data-control="scenario"]'),
-      intensity: root.querySelector('[data-control="intensity"]'),
-      startup: root.querySelector('[data-control="startup"]'),
-      play: root.querySelector('[data-control="play"]')
+      scenario: root.querySelector(&#x27;[data-control=&quot;scenario&quot;]&#x27;),
+      intensity: root.querySelector(&#x27;[data-control=&quot;intensity&quot;]&#x27;),
+      startup: root.querySelector(&#x27;[data-control=&quot;startup&quot;]&#x27;),
+      play: root.querySelector(&#x27;[data-control=&quot;play&quot;]&#x27;)
     };
     const outputs = {
-      intensity: root.querySelector('[data-output="intensity"]'),
-      startup: root.querySelector('[data-output="startup"]')
+      intensity: root.querySelector(&#x27;[data-output=&quot;intensity&quot;]&#x27;),
+      startup: root.querySelector(&#x27;[data-output=&quot;startup&quot;]&#x27;),
+      sourceNote: root.querySelector(&#x27;[data-output=&quot;source-note&quot;]&#x27;)
     };
 
     const totalSeconds = 180;
     const slotsPerReplica = 8;
-    const maxReplicas = 5;
+    const maxReplicas = 12;
     const maxWaitSeconds = 75;
     const memPerReplica = 12.5;
     const modes = [
-      { key: "static", label: "No DLL", note: "fixed capacity" },
-      { key: "reactive", label: "Reactive DLL", note: "wait, then scale" },
-      { key: "ai", label: "AI DLL", note: "forecast, shape, then wait" }
+      { key: &quot;static&quot;, label: &quot;No DLL&quot;, note: &quot;fixed capacity&quot; },
+      { key: &quot;reactive&quot;, label: &quot;Reactive DLL&quot;, note: &quot;wait, then scale&quot; },
+      { key: &quot;cold_ai&quot;, label: &quot;AI DLL, Global Prior&quot;, note: &quot;global prior + live shape&quot; },
+      { key: &quot;learned_ai&quot;, label: &quot;AI DLL, Local Learning&quot;, note: &quot;global prior + local history&quot; }
     ];
+    const observedSample = {
+      window: &quot;Observe 60d DaaS prod EMS probe, daily-bucketed and normalized to 180s&quot;,
+      emsWaiterLogs: 8428582,
+      emsCreateSubEngineLogs: 6233592,
+      emsDeleteSubEngineLogs: 7028407,
+      emsDecommissioningLogs: 4516858,
+      emsFailureLogs: 51093,
+      emsErrorLogs: 541852,
+      emsDailyAverageCategoryLogs: 1064471,
+      emsDailyPeakCategoryLogs: 2173116,
+      startupWindow: &quot;Observe 30d prod EMS successful sub-engine/replica creates&quot;,
+      startupStarts: 79126,
+      startupP50Seconds: 48,
+      startupP95Seconds: 127,
+      startupP99Seconds: 140,
+      demandScaleCreates: 78881,
+      demandScaleP50Seconds: 48,
+      demandScaleP95Seconds: 126,
+      demandScaleP99Seconds: 140,
+      otherCreates: 245,
+      otherP50Seconds: 54,
+      otherP95Seconds: 127,
+      otherP99Seconds: 155
+    };
     const scenarioMeta = {
+      observe: { peak: 74, aiNeed: 3.4 },
       dashboard: { peak: 62, aiNeed: 2.0 },
       etl: { peak: 64, aiNeed: 3.0 },
       joins: { peak: 62, aiNeed: 4.0 },
@@ -276,33 +1172,51 @@ main { max-width: 1120px; margin: 0 auto; }
 
     function countFromRate(rate, seed) {
       const whole = Math.floor(rate);
-      return whole + (hash(seed) < rate - whole ? 1 : 0);
+      return whole + (hash(seed) &lt; rate - whole ? 1 : 0);
     }
 
     function makeQuery(id, arrival, kind, scenario) {
       const r = hash(id * 7 + arrival * 13);
-      const joinHeavy = scenario === "joins" || (scenario === "shape" && arrival > 85);
+      const joinHeavy = scenario === &quot;joins&quot; || (scenario === &quot;shape&quot; &amp;&amp; arrival &gt; 85);
+      if (scenario === &quot;observe&quot;) {
+        const duration = kind === &quot;cheap&quot; ? 3 + Math.floor(r * 5) : 34 + Math.floor(r * 46);
+        const memory = kind === &quot;cheap&quot; ? 0.9 + r * 0.4 : 3.7 + r * 1.8;
+        return { id, arrival, kind, duration, memory };
+      }
       const duration =
-        kind === "cheap"
+        kind === &quot;cheap&quot;
           ? 2 + Math.floor(r * 5)
           : (joinHeavy ? 42 : 26) + Math.floor(r * (joinHeavy ? 48 : 34));
-      const memory = kind === "cheap" ? 0.8 + r * 0.5 : (joinHeavy ? 4.2 : 3.1) + r * 1.4;
+      const memory = kind === &quot;cheap&quot; ? 0.8 + r * 0.5 : (joinHeavy ? 4.2 : 3.1) + r * 1.4;
       return { id, arrival, kind, duration, memory };
     }
 
     function generateWorkload(scenario, intensity) {
-      const workload = Array.from({ length: totalSeconds + 1 }, () => []);
+      const workload = Array.from({ length: totalSeconds + 1 }, () =&gt; []);
       let id = 1;
-      for (let t = 0; t <= totalSeconds; t++) {
+      for (let t = 0; t &lt;= totalSeconds; t++) {
         let cheapRate = 0.12;
         let heavyRate = 0.015;
-        if (scenario === "dashboard") {
+        if (scenario === &quot;observe&quot;) {
+          const waiterPressure = observedSample.emsWaiterLogs / observedSample.emsCreateSubEngineLogs;
+          const churnPressure = observedSample.emsDeleteSubEngineLogs / observedSample.emsCreateSubEngineLogs;
+          const failurePressure = Math.min(
+            1.5,
+            (observedSample.emsFailureLogs + observedSample.emsErrorLogs)
+              / Math.max(1, observedSample.emsWaiterLogs + observedSample.emsCreateSubEngineLogs)
+              * 30
+          );
+          cheapRate += gaussian(t, 54, 15) * intensity * (1.7 + Math.min(0.5, waiterPressure - 1));
+          cheapRate += gaussian(t, 118, 18) * intensity * 0.72;
+          heavyRate += gaussian(t, 74, 20) * intensity * (0.72 + Math.min(0.35, churnPressure - 1));
+          heavyRate += gaussian(t, 112, 17) * intensity * (0.42 + failurePressure * 0.16);
+        } else if (scenario === &quot;dashboard&quot;) {
           cheapRate += gaussian(t, 62, 13) * intensity * 3.2;
           heavyRate += gaussian(t, 72, 18) * intensity * 0.22;
-        } else if (scenario === "etl") {
+        } else if (scenario === &quot;etl&quot;) {
           cheapRate += gaussian(t, 66, 16) * intensity * 1.2;
           heavyRate += gaussian(t, 58, 20) * intensity * 0.82;
-        } else if (scenario === "joins") {
+        } else if (scenario === &quot;joins&quot;) {
           cheapRate += gaussian(t, 62, 20) * intensity * 0.35;
           heavyRate += gaussian(t, 62, 17) * intensity * 1.38;
         } else {
@@ -311,11 +1225,11 @@ main { max-width: 1120px; margin: 0 auto; }
         }
         const cheapCount = countFromRate(cheapRate, t * 17 + 3);
         const heavyCount = countFromRate(heavyRate, t * 19 + 5);
-        for (let i = 0; i < cheapCount; i++) {
-          workload[t].push(makeQuery(id++, t, "cheap", scenario));
+        for (let i = 0; i &lt; cheapCount; i++) {
+          workload[t].push(makeQuery(id++, t, &quot;cheap&quot;, scenario));
         }
-        for (let i = 0; i < heavyCount; i++) {
-          workload[t].push(makeQuery(id++, t, "heavy", scenario));
+        for (let i = 0; i &lt; heavyCount; i++) {
+          workload[t].push(makeQuery(id++, t, &quot;heavy&quot;, scenario));
         }
       }
       return workload;
@@ -325,7 +1239,7 @@ main { max-width: 1120px; margin: 0 auto; }
       if (!values.length) {
         return 0;
       }
-      const sorted = values.slice().sort((a, b) => a - b);
+      const sorted = values.slice().sort((a, b) =&gt; a - b);
       const idx = Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p));
       return sorted[idx];
     }
@@ -350,49 +1264,53 @@ main { max-width: 1120px; margin: 0 auto; }
 
       function scheduleReplica(t, count, reason) {
         let remaining = Math.min(count, maxReplicas - activeAndPending());
-        while (remaining > 0) {
-          pending.push({ readyAt: t + settings.startup + (count - remaining) * 3, reason });
+        const spacing = reason === &quot;forecast&quot; ? 1 : 3;
+        while (remaining &gt; 0) {
+          pending.push({ readyAt: t + settings.startup + (count - remaining) * spacing, reason });
           remaining--;
         }
-        if (count > 0) {
+        if (count &gt; 0) {
           lastScaleAt = t;
         }
       }
 
       function runningMemory() {
-        return running.reduce((sum, q) => sum + q.memory, 0);
+        return running.reduce((sum, q) =&gt; sum + q.memory, 0);
       }
 
       function canFit(query) {
-        return running.length < replicas * slotsPerReplica
-          && runningMemory() + query.memory <= replicas * memPerReplica;
+        return running.length &lt; replicas * slotsPerReplica
+          &amp;&amp; runningMemory() + query.memory &lt;= replicas * memPerReplica;
       }
 
       function selectIndex(t) {
-        if (mode !== "ai") {
+        const aiMode = mode === &quot;cold_ai&quot; || mode === &quot;learned_ai&quot;;
+        if (!aiMode) {
           return 0;
         }
-        const oldHeavy = waitQueue.findIndex(q => q.kind === "heavy" && t - q.arrival >= 28 && canFit(q));
-        if (oldHeavy >= 0) {
-          return oldHeavy;
+        if (mode === &quot;learned_ai&quot;) {
+          const oldHeavy = waitQueue.findIndex(q =&gt; q.kind === &quot;heavy&quot; &amp;&amp; t - q.arrival &gt;= 24 &amp;&amp; canFit(q));
+          if (oldHeavy &gt;= 0) {
+            return oldHeavy;
+          }
         }
-        const cheapFit = waitQueue.findIndex(q => q.kind === "cheap" && canFit(q));
-        if (cheapFit >= 0) {
+        const cheapFit = waitQueue.findIndex(q =&gt; q.kind === &quot;cheap&quot; &amp;&amp; canFit(q));
+        if (cheapFit &gt;= 0) {
           return cheapFit;
         }
-        const anyFit = waitQueue.findIndex(q => canFit(q));
-        return anyFit >= 0 ? anyFit : 0;
+        const anyFit = waitQueue.findIndex(q =&gt; canFit(q));
+        return anyFit &gt;= 0 ? anyFit : 0;
       }
 
-      for (let t = 0; t <= totalSeconds; t++) {
-        for (let i = running.length - 1; i >= 0; i--) {
-          if (running[i].endAt <= t) {
+      for (let t = 0; t &lt;= totalSeconds; t++) {
+        for (let i = running.length - 1; i &gt;= 0; i--) {
+          if (running[i].endAt &lt;= t) {
             running.splice(i, 1);
             completed++;
           }
         }
-        for (let i = pending.length - 1; i >= 0; i--) {
-          if (pending[i].readyAt <= t) {
+        for (let i = pending.length - 1; i &gt;= 0; i--) {
+          if (pending[i].readyAt &lt;= t) {
             pending.splice(i, 1);
             replicas++;
           }
@@ -402,38 +1320,47 @@ main { max-width: 1120px; margin: 0 auto; }
           waitQueue.push(query);
         }
 
-        if (mode === "ai") {
+        if (mode === &quot;learned_ai&quot;) {
           const meta = scenarioMeta[settings.scenario];
-          const desired = Math.min(maxReplicas, Math.max(1, Math.ceil(meta.aiNeed * settings.intensity)));
-          const latestStart = Math.max(1, meta.peak - settings.startup + 2);
-          if (!prewarmDone && t >= latestStart) {
-            scheduleReplica(t, Math.max(0, desired - activeAndPending()), "forecast");
+          const desired = Math.min(maxReplicas, Math.max(1, Math.ceil(meta.aiNeed * settings.intensity * 1.18)));
+          const latestStart = Math.max(1, meta.peak - settings.startup * 2.1);
+          if (!prewarmDone &amp;&amp; t &gt;= latestStart) {
+            scheduleReplica(t, Math.max(0, desired - activeAndPending()), &quot;forecast&quot;);
             prewarmDone = true;
           }
-          if (waitQueue.length > slotsPerReplica && activeAndPending() < maxReplicas && t - lastScaleAt > 10) {
-            scheduleReplica(t, 1, "fallback");
+          if (waitQueue.length &gt; slotsPerReplica &amp;&amp; activeAndPending() &lt; maxReplicas &amp;&amp; t - lastScaleAt &gt; 10) {
+            scheduleReplica(t, 1, &quot;fallback&quot;);
           }
-        } else if (mode === "reactive") {
-          if (waitQueue.length > Math.max(3, slotsPerReplica * 0.6)
-            && activeAndPending() < maxReplicas
-            && t - lastScaleAt > Math.max(9, settings.startup * 0.45)) {
-            scheduleReplica(t, 1, "waiters");
+        } else if (mode === &quot;cold_ai&quot;) {
+          const heavyWaiters = waitQueue.filter(query =&gt; query.kind === &quot;heavy&quot;).length;
+          const livePressure = waitQueue.length &gt; Math.max(6, slotsPerReplica * 0.95);
+          const riskyShape = heavyWaiters &gt;= Math.max(3, slotsPerReplica * 0.38);
+          if ((livePressure || riskyShape)
+            &amp;&amp; activeAndPending() &lt; maxReplicas
+            &amp;&amp; t - lastScaleAt &gt; Math.max(9, settings.startup * 0.42)) {
+            scheduleReplica(t, 1, &quot;global-prior&quot;);
+          }
+        } else if (mode === &quot;reactive&quot;) {
+          if (waitQueue.length &gt; Math.max(3, slotsPerReplica * 0.6)
+            &amp;&amp; activeAndPending() &lt; maxReplicas
+            &amp;&amp; t - lastScaleAt &gt; Math.max(9, settings.startup * 0.45)) {
+            scheduleReplica(t, 1, &quot;waiters&quot;);
           }
         }
 
-        for (let i = waitQueue.length - 1; i >= 0; i--) {
-          if (mode !== "static" && t - waitQueue[i].arrival > maxWaitSeconds) {
-            waitQueue.splice(i, 1);
+        for (const query of waitQueue) {
+          if (mode !== &quot;static&quot; &amp;&amp; !query.breached &amp;&amp; t - query.arrival &gt; maxWaitSeconds) {
+            query.breached = true;
             failed++;
           }
         }
 
         let guard = 0;
-        while (waitQueue.length && running.length < replicas * slotsPerReplica && guard++ < 200) {
+        while (waitQueue.length &amp;&amp; running.length &lt; replicas * slotsPerReplica &amp;&amp; guard++ &lt; 200) {
           const idx = selectIndex(t);
           const query = waitQueue[idx];
           if (!canFit(query)) {
-            if (mode === "static") {
+            if (mode === &quot;static&quot;) {
               waitQueue.splice(idx, 1);
               failed++;
               failedWorkSeconds += Math.max(4, query.duration * 0.25);
@@ -442,14 +1369,16 @@ main { max-width: 1120px; margin: 0 auto; }
             break;
           }
           waitQueue.splice(idx, 1);
-          waitTimes.push(t - query.arrival);
+          if (!query.breached) {
+            waitTimes.push(t - query.arrival);
+          }
           running.push({ ...query, endAt: t + query.duration });
         }
 
-        if (mode === "static" && waitQueue.length) {
+        if (mode === &quot;static&quot; &amp;&amp; waitQueue.length) {
           for (const query of waitQueue) {
             failed++;
-            if (query.kind === "heavy") {
+            if (query.kind === &quot;heavy&quot;) {
               failedWorkSeconds += Math.max(4, query.duration * 0.22);
             }
           }
@@ -476,7 +1405,8 @@ main { max-width: 1120px; margin: 0 auto; }
           completed,
           failed,
           p95Wait: percentile(waitTimes, 0.95),
-          avgWait: waitTimes.length ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length : 0,
+          p99Wait: percentile(waitTimes, 0.99),
+          avgWait: waitTimes.length ? waitTimes.reduce((a, b) =&gt; a + b, 0) / waitTimes.length : 0,
           wasted: idleReplicaSeconds + failedWorkSeconds / slotsPerReplica
         }
       };
@@ -492,19 +1422,19 @@ main { max-width: 1120px; margin: 0 auto; }
       return {
         settings,
         workload,
-        runs: modes.map(mode => simulateMode(mode.key, workload, settings))
+        runs: modes.map(mode =&gt; simulateMode(mode.key, workload, settings))
       };
     }
 
     function pathFromPoints(points) {
-      return points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+      return points.map((p, i) =&gt; `${i === 0 ? &quot;M&quot; : &quot;L&quot;} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(&quot; &quot;);
     }
 
     function areaFromPoints(points, baseline) {
       if (!points.length) {
-        return "";
+        return &quot;&quot;;
       }
-      const forward = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+      const forward = points.map((p, i) =&gt; `${i === 0 ? &quot;M&quot; : &quot;L&quot;} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(&quot; &quot;);
       const last = points[points.length - 1][0].toFixed(1);
       const first = points[0][0].toFixed(1);
       return `${forward} L ${last} ${baseline.toFixed(1)} L ${first} ${baseline.toFixed(1)} Z`;
@@ -512,17 +1442,17 @@ main { max-width: 1120px; margin: 0 auto; }
 
     function stepPath(points) {
       if (!points.length) {
-        return "";
+        return &quot;&quot;;
       }
       let d = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
-      for (let i = 1; i < points.length; i++) {
+      for (let i = 1; i &lt; points.length; i++) {
         d += ` H ${points[i][0].toFixed(1)} V ${points[i][1].toFixed(1)}`;
       }
       return d;
     }
 
     function svgEl(name, attrs = {}) {
-      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      const el = document.createElementNS(&quot;http://www.w3.org/2000/svg&quot;, name);
       for (const [key, value] of Object.entries(attrs)) {
         el.setAttribute(key, value);
       }
@@ -530,7 +1460,7 @@ main { max-width: 1120px; margin: 0 auto; }
     }
 
     function addText(parent, text, x, y, attrs = {}) {
-      const el = svgEl("text", { x, y, ...attrs });
+      const el = svgEl(&quot;text&quot;, { x, y, ...attrs });
       el.textContent = text;
       parent.appendChild(el);
       return el;
@@ -542,170 +1472,187 @@ main { max-width: 1120px; margin: 0 auto; }
       }
 
       const width = Math.max(360, Math.round(root.getBoundingClientRect().width || 740));
-      const height = 390;
-      const left = width < 480 ? 92 : 108;
-      const right = 18;
       const top = 24;
       const rowHeight = 86;
       const rowGap = 18;
-      const plotWidth = width - left - right;
       const plotBottom = top + modes.length * rowHeight + (modes.length - 1) * rowGap;
-      const x = t => left + (t / totalSeconds) * plotWidth;
+      const height = plotBottom + 36;
+      const left = width &lt; 480 ? 118 : 136;
+      const right = 18;
+      const plotWidth = width - left - right;
+      const x = t =&gt; left + (t / totalSeconds) * plotWidth;
       const maxWaiters = Math.max(
         1,
-        ...model.runs.flatMap(run => run.series.map(point => point.waiters))
+        ...model.runs.flatMap(run =&gt; run.series.map(point =&gt; point.waiters))
       );
       const maxRunning = Math.max(
         slotsPerReplica,
-        ...model.runs.flatMap(run => run.series.map(point => point.running))
+        ...model.runs.flatMap(run =&gt; run.series.map(point =&gt; point.running))
       );
 
-      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-      svg.setAttribute("height", height);
-      svg.innerHTML = "";
+      svg.setAttribute(&quot;viewBox&quot;, `0 0 ${width} ${height}`);
+      svg.setAttribute(&quot;height&quot;, height);
+      svg.innerHTML = &quot;&quot;;
 
-      const defs = svgEl("defs");
+      const defs = svgEl(&quot;defs&quot;);
       defs.innerHTML = `
-        <clipPath id="ai-wlm-frame-clip">
-          <rect x="${left}" y="${top - 2}" width="${plotWidth}" height="${plotBottom - top + 8}"></rect>
-        </clipPath>
+        &lt;clipPath id=&quot;ai-wlm-frame-clip&quot;&gt;
+          &lt;rect x=&quot;${left}&quot; y=&quot;${top - 2}&quot; width=&quot;${plotWidth}&quot; height=&quot;${plotBottom - top + 8}&quot;&gt;&lt;/rect&gt;
+        &lt;/clipPath&gt;
       `;
       svg.appendChild(defs);
 
-      addText(svg, "time (seconds)", left + plotWidth / 2, height - 8, {
-        "text-anchor": "middle",
-        class: "axis-title"
+      addText(svg, &quot;time (seconds)&quot;, left + plotWidth / 2, height - 8, {
+        &quot;text-anchor&quot;: &quot;middle&quot;,
+        class: &quot;axis-title&quot;
       });
 
-      for (let tick = 0; tick <= totalSeconds; tick += 30) {
+      for (let tick = 0; tick &lt;= totalSeconds; tick += 30) {
         const tx = x(tick);
-        svg.appendChild(svgEl("line", {
+        svg.appendChild(svgEl(&quot;line&quot;, {
           x1: tx,
           x2: tx,
           y1: top - 4,
           y2: plotBottom + 6,
-          stroke: "var(--border)",
-          "stroke-width": "1"
+          stroke: &quot;var(--border)&quot;,
+          &quot;stroke-width&quot;: &quot;1&quot;
         }));
         addText(svg, String(tick), tx, plotBottom + 22, {
-          "text-anchor": "middle",
-          class: "muted"
+          &quot;text-anchor&quot;: &quot;middle&quot;,
+          class: &quot;muted&quot;
         });
       }
 
-      model.runs.forEach((run, rowIndex) => {
+      model.runs.forEach((run, rowIndex) =&gt; {
         const y0 = top + rowIndex * (rowHeight + rowGap);
         const frameHeight = 70;
         const base = y0 + frameHeight;
-        const yWait = value => base - Math.min(1, value / maxWaiters) * (frameHeight - 10);
-        const yReplicas = value => base - Math.min(1, value / maxReplicas) * (frameHeight - 10);
-        const yRunning = value => base - Math.min(1, value / maxRunning) * (frameHeight - 10);
+        const yWait = value =&gt; base - Math.min(1, value / maxWaiters) * (frameHeight - 10);
+        const yReplicas = value =&gt; base - Math.min(1, value / maxReplicas) * (frameHeight - 10);
+        const yRunning = value =&gt; base - Math.min(1, value / maxRunning) * (frameHeight - 10);
 
         addText(svg, modes[rowIndex].label, 8, y0 + 14, {
-          "font-weight": "700"
+          &quot;font-weight&quot;: &quot;700&quot;
         });
         addText(svg, modes[rowIndex].note, 8, y0 + 30, {
-          class: "muted"
+          class: &quot;muted&quot;
         });
-        addText(svg, `p95 ${Math.round(run.metrics.p95Wait)}s`, 8, y0 + 48, {
-          class: "muted"
+        addText(svg, `p95/p99 ${Math.round(run.metrics.p95Wait)}/${Math.round(run.metrics.p99Wait)}s`, 8, y0 + 48, {
+          class: &quot;muted&quot;
         });
-        addText(svg, `fail ${run.metrics.failed}`, 8, y0 + 64, {
-          class: "muted"
+        addText(svg, `past SLO ${run.metrics.failed}`, 8, y0 + 64, {
+          class: &quot;muted&quot;
         });
         addText(svg, `waste ${Math.round(run.metrics.wasted)}`, 8, y0 + 80, {
-          class: "muted"
+          class: &quot;muted&quot;
         });
 
-        svg.appendChild(svgEl("rect", {
+        svg.appendChild(svgEl(&quot;rect&quot;, {
           x: left,
           y: y0,
           width: plotWidth,
           height: frameHeight,
-          fill: "transparent",
-          stroke: "var(--border)",
-          "stroke-width": "1",
-          "data-chart-frame": "true"
+          fill: &quot;transparent&quot;,
+          stroke: &quot;var(--border)&quot;,
+          &quot;stroke-width&quot;: &quot;1&quot;,
+          &quot;data-chart-frame&quot;: &quot;true&quot;
         }));
 
-        const waitPoints = run.series.map(point => [x(point.t), yWait(point.waiters)]);
-        const runningPoints = run.series.map(point => [x(point.t), yRunning(point.running)]);
-        const replicaPoints = run.series.map(point => [x(point.t), yReplicas(point.replicas)]);
+        const waitPoints = run.series.map(point =&gt; [x(point.t), yWait(point.waiters)]);
+        const runningPoints = run.series.map(point =&gt; [x(point.t), yRunning(point.running)]);
+        const replicaPoints = run.series.map(point =&gt; [x(point.t), yReplicas(point.replicas)]);
 
-        svg.appendChild(svgEl("path", {
+        svg.appendChild(svgEl(&quot;path&quot;, {
           d: areaFromPoints(waitPoints, base),
-          fill: "var(--viz-series-1)",
-          opacity: "0.14"
+          fill: &quot;var(--viz-series-1)&quot;,
+          opacity: &quot;0.14&quot;
         }));
-        svg.appendChild(svgEl("path", {
+        svg.appendChild(svgEl(&quot;path&quot;, {
           d: pathFromPoints(waitPoints),
-          fill: "none",
-          stroke: "var(--viz-series-1)",
-          "stroke-width": "2"
+          fill: &quot;none&quot;,
+          stroke: &quot;var(--viz-series-1)&quot;,
+          &quot;stroke-width&quot;: &quot;2&quot;
         }));
-        svg.appendChild(svgEl("path", {
+        svg.appendChild(svgEl(&quot;path&quot;, {
           d: pathFromPoints(runningPoints),
-          fill: "none",
-          stroke: "var(--viz-series-3)",
-          "stroke-width": "1.5",
-          opacity: "0.74"
+          fill: &quot;none&quot;,
+          stroke: &quot;var(--viz-series-3)&quot;,
+          &quot;stroke-width&quot;: &quot;1.5&quot;,
+          opacity: &quot;0.74&quot;
         }));
-        svg.appendChild(svgEl("path", {
+        svg.appendChild(svgEl(&quot;path&quot;, {
           d: stepPath(replicaPoints),
-          fill: "none",
-          stroke: "var(--viz-series-2)",
-          "stroke-width": "2.4"
+          fill: &quot;none&quot;,
+          stroke: &quot;var(--viz-series-2)&quot;,
+          &quot;stroke-width&quot;: &quot;2.4&quot;
         }));
 
         let previousFailures = 0;
         for (const point of run.series) {
           const delta = point.failed - previousFailures;
           previousFailures = point.failed;
-          if (delta <= 0) {
+          if (delta &lt;= 0) {
             continue;
           }
-          svg.appendChild(svgEl("circle", {
+          svg.appendChild(svgEl(&quot;circle&quot;, {
             cx: x(point.t),
             cy: base - 4,
             r: Math.min(7, 2.5 + delta),
-            fill: "var(--viz-series-4)",
-            opacity: "0.86"
+            fill: &quot;var(--viz-series-4)&quot;,
+            opacity: &quot;0.86&quot;
           }));
         }
       });
 
       const cursorX = x(currentSecond);
-      svg.appendChild(svgEl("line", {
+      svg.appendChild(svgEl(&quot;line&quot;, {
         x1: cursorX,
         x2: cursorX,
         y1: top - 8,
         y2: plotBottom + 8,
-        stroke: "var(--viz-series-5)",
-        "stroke-width": "2",
-        "stroke-dasharray": "4 4"
+        stroke: &quot;var(--viz-series-5)&quot;,
+        &quot;stroke-width&quot;: &quot;2&quot;,
+        &quot;stroke-dasharray&quot;: &quot;4 4&quot;
       }));
       addText(svg, `${currentSecond}s`, Math.min(width - 18, cursorX + 5), top - 10, {
-        class: "muted"
+        class: &quot;muted&quot;
       });
 
       updateDetail();
     }
 
     function updateDetail() {
-      const point = key => {
-        const run = model.runs.find(item => item.mode === key);
+      const point = key =&gt; {
+        const run = model.runs.find(item =&gt; item.mode === key);
         return run.series[Math.min(currentSecond, run.series.length - 1)];
       };
-      const staticPoint = point("static");
-      const reactivePoint = point("reactive");
-      const aiPoint = point("ai");
+      const staticPoint = point(&quot;static&quot;);
+      const reactivePoint = point(&quot;reactive&quot;);
+      const coldAiPoint = point(&quot;cold_ai&quot;);
+      const learnedAiPoint = point(&quot;learned_ai&quot;);
       detail.textContent =
-        `At ${currentSecond}s: no DLL failed ${staticPoint.failed}; reactive DLL has ${reactivePoint.waiters} waiting and ${reactivePoint.replicas} replicas; AI DLL has ${aiPoint.waiters} waiting and ${aiPoint.replicas} replicas.`;
+        `At ${currentSecond}s: no DLL has ${staticPoint.failed} fail-fast or past-SLO queries; reactive DLL has ${reactivePoint.waiters} waiting; global-prior AI has ${coldAiPoint.waiters} waiting; local-learning AI has ${learnedAiPoint.waiters} waiting and ${learnedAiPoint.replicas} replicas.`;
+    }
+
+    function formatCompact(value) {
+      return new Intl.NumberFormat(&quot;en&quot;, { notation: &quot;compact&quot;, maximumFractionDigits: 1 }).format(value);
+    }
+
+    function updateCalibrationText() {
+      if (controls.scenario.value === &quot;observe&quot;) {
+        outputs.sourceNote.textContent = &quot;Observed DaaS signal counts and replica-create latency normalized into the same 180s model&quot;;
+        calibration.textContent =
+          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. Global-prior AI uses the shipped prior plus live shape; local-learning AI adds persisted tenant/project history. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
+      } else {
+        outputs.sourceNote.textContent = &quot;Synthetic workload for comparing admission strategies&quot;;
+        calibration.textContent = &quot;Synthetic preset: global-prior AI starts from the shipped prior; local-learning AI adds persisted tenant/project history. Extreme load plus slow replica create will still show tail wait when the forecast horizon is shorter than create-to-useful-capacity time.&quot;;
+      }
     }
 
     function recompute() {
       outputs.intensity.textContent = `${Number(controls.intensity.value).toFixed(1)}x`;
       outputs.startup.textContent = `${controls.startup.value}s`;
+      updateCalibrationText();
       model = simulate();
       currentSecond = Math.min(currentSecond, totalSeconds);
       draw();
@@ -715,33 +1662,274 @@ main { max-width: 1120px; margin: 0 auto; }
       if (!playing) {
         return;
       }
-      currentSecond = currentSecond >= totalSeconds ? 0 : currentSecond + 1;
+      currentSecond = currentSecond &gt;= totalSeconds ? 0 : currentSecond + 1;
       draw();
     }
 
-    controls.scenario.addEventListener("change", () => {
+    controls.scenario.addEventListener(&quot;change&quot;, () =&gt; {
       currentSecond = 0;
       recompute();
     });
-    controls.intensity.addEventListener("input", recompute);
-    controls.startup.addEventListener("input", recompute);
-    controls.play.addEventListener("click", () => {
+    controls.intensity.addEventListener(&quot;input&quot;, recompute);
+    controls.startup.addEventListener(&quot;input&quot;, recompute);
+    controls.play.addEventListener(&quot;click&quot;, () =&gt; {
       playing = !playing;
-      controls.play.textContent = playing ? "Pause" : "Run";
-      controls.play.setAttribute("aria-pressed", String(playing));
+      controls.play.textContent = playing ? &quot;Pause&quot; : &quot;Run&quot;;
+      controls.play.setAttribute(&quot;aria-pressed&quot;, String(playing));
     });
 
     new ResizeObserver(draw).observe(root);
     recompute();
     timer = setInterval(tick, 130);
-    root.addEventListener("DOMNodeRemoved", () => {
+    root.addEventListener(&quot;DOMNodeRemoved&quot;, () =&gt; {
       if (timer) {
         clearInterval(timer);
       }
     }, { once: true });
   })();
-</script>
+&lt;/script&gt;
 
-</main>
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
 </body>
 </html>
