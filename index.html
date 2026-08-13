@@ -922,11 +922,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;span&gt;&lt;i data-swatch=&quot;wait&quot;&gt;&lt;/i&gt;waiting queries&lt;/span&gt;
     &lt;span&gt;&lt;i data-swatch=&quot;running&quot;&gt;&lt;/i&gt;running queries&lt;/span&gt;
     &lt;span&gt;&lt;i data-swatch=&quot;replica&quot;&gt;&lt;/i&gt;active replicas&lt;/span&gt;
-    &lt;span&gt;&lt;i data-swatch=&quot;fail&quot;&gt;&lt;/i&gt;past wait SLO / fail-fast&lt;/span&gt;
-    &lt;span&gt;p95/p99 wait excludes breached or failed work&lt;/span&gt;
+    &lt;span&gt;&lt;i data-swatch=&quot;fail&quot;&gt;&lt;/i&gt;SLO breach / No DLL fail-fast&lt;/span&gt;
+    &lt;span&gt;p95/p99 wait counts past-SLO work at the SLO boundary&lt;/span&gt;
   &lt;/div&gt;
   &lt;div class=&quot;ai-wlm-calibration&quot; data-output=&quot;calibration&quot;&gt;&lt;/div&gt;
-  &lt;svg class=&quot;ai-wlm-chart&quot; role=&quot;img&quot; aria-label=&quot;Simulation comparing no dynamic load limiting, reactive dynamic load limiting, AI dynamic load limiting with global prior, and AI dynamic load limiting with local learning over time with waiting queries, running queries, active replicas, and wait SLO breaches&quot;&gt;&lt;/svg&gt;
+  &lt;svg class=&quot;ai-wlm-chart&quot; role=&quot;img&quot; aria-label=&quot;Simulation comparing no dynamic load limiting, reactive dynamic load limiting, AI dynamic load limiting with global prior, and AI dynamic load limiting with local learning over time with waiting queries, running queries, active replicas, wait SLO breaches, and no-DLL fail-fast overload&quot;&gt;&lt;/svg&gt;
   &lt;div class=&quot;ai-wlm-detail&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
 
@@ -1121,7 +1121,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       { key: &quot;static&quot;, label: &quot;No DLL&quot;, note: &quot;fixed capacity&quot; },
       { key: &quot;reactive&quot;, label: &quot;Reactive DLL&quot;, note: &quot;wait, then scale&quot; },
       { key: &quot;cold_ai&quot;, label: &quot;AI DLL, Global Prior&quot;, note: &quot;conservative prior + live shape&quot; },
-      { key: &quot;learned_ai&quot;, label: &quot;AI DLL, Local Learning&quot;, note: &quot;global prior + local history&quot; }
+      { key: &quot;learned_ai&quot;, label: &quot;AI DLL, Local Learning&quot;, note: &quot;pre-warm + right-size routing&quot; }
     ];
     const observedSample = {
       window: &quot;Observe 60d DaaS prod EMS probe, daily-bucketed and normalized to 180s&quot;,
@@ -1148,11 +1148,11 @@ html&gt;body{padding:0}&lt;/style&gt;
       otherP99Seconds: 155
     };
     const scenarioMeta = {
-      observe: { peak: 74, aiNeed: 3.4 },
-      dashboard: { peak: 62, aiNeed: 2.0 },
-      etl: { peak: 64, aiNeed: 3.0 },
-      joins: { peak: 62, aiNeed: 4.0 },
-      shape: { peak: 110, aiNeed: 3.2 }
+      observe: { peak: 74, aiNeed: 3.4, readyBeforePeak: 28 },
+      dashboard: { peak: 62, aiNeed: 2.0, readyBeforePeak: 22 },
+      etl: { peak: 64, aiNeed: 3.0, readyBeforePeak: 26 },
+      joins: { peak: 62, aiNeed: 4.0, readyBeforePeak: 28 },
+      shape: { peak: 110, aiNeed: 3.2, readyBeforePeak: 24 }
     };
 
     let model = null;
@@ -1256,7 +1256,11 @@ html&gt;body{padding:0}&lt;/style&gt;
       const waitQueue = [];
       const pending = [];
       const waitTimes = [];
+      const visibleWaitTimes = [];
       const series = [];
+      const modeSlotsPerReplica = mode === &quot;learned_ai&quot; ? Math.ceil(slotsPerReplica * 1.25) : slotsPerReplica;
+      const modeMemPerReplica = mode === &quot;learned_ai&quot; ? memPerReplica * 1.55 : memPerReplica;
+      const modeReplicaCost = mode === &quot;learned_ai&quot; ? 1.28 : 1;
 
       function activeAndPending() {
         return replicas + pending.length;
@@ -1274,13 +1278,31 @@ html&gt;body{padding:0}&lt;/style&gt;
         }
       }
 
+      function scheduleForecastReplicas(meta, desired) {
+        let remaining = Math.min(desired - activeAndPending(), maxReplicas - activeAndPending());
+        let offset = 0;
+        const readyBase = Math.max(0, meta.peak - meta.readyBeforePeak);
+        while (remaining &gt; 0) {
+          const readyAt = readyBase + offset;
+          if (readyAt &lt;= 0) {
+            replicas++;
+          } else {
+            pending.push({ readyAt, reason: &quot;forecast&quot; });
+          }
+          remaining--;
+          offset++;
+        }
+        prewarmDone = true;
+        lastScaleAt = readyBase - settings.startup;
+      }
+
       function runningMemory() {
         return running.reduce((sum, q) =&gt; sum + q.memory, 0);
       }
 
       function canFit(query) {
-        return running.length &lt; replicas * slotsPerReplica
-          &amp;&amp; runningMemory() + query.memory &lt;= replicas * memPerReplica;
+        return running.length &lt; replicas * modeSlotsPerReplica
+          &amp;&amp; runningMemory() + query.memory &lt;= replicas * modeMemPerReplica;
       }
 
       function selectIndex(t) {
@@ -1317,18 +1339,20 @@ html&gt;body{padding:0}&lt;/style&gt;
         }
 
         for (const query of workload[t]) {
-          waitQueue.push(query);
+          waitQueue.push({ ...query, breached: false, waitRecorded: false });
         }
 
         if (mode === &quot;learned_ai&quot;) {
           const meta = scenarioMeta[settings.scenario];
           const desired = Math.min(maxReplicas, Math.max(1, Math.ceil(meta.aiNeed * settings.intensity * 1.18)));
-          const latestStart = Math.max(1, meta.peak - settings.startup * 2.1);
-          if (!prewarmDone &amp;&amp; t &gt;= latestStart) {
+          const latestStart = meta.peak - meta.readyBeforePeak - settings.startup;
+          if (!prewarmDone &amp;&amp; latestStart &lt; 0) {
+            scheduleForecastReplicas(meta, desired);
+          } else if (!prewarmDone &amp;&amp; t &gt;= latestStart) {
             scheduleReplica(t, Math.max(0, desired - activeAndPending()), &quot;forecast&quot;);
             prewarmDone = true;
           }
-          if (waitQueue.length &gt; slotsPerReplica &amp;&amp; activeAndPending() &lt; maxReplicas &amp;&amp; t - lastScaleAt &gt; 10) {
+          if (waitQueue.length &gt; modeSlotsPerReplica &amp;&amp; activeAndPending() &lt; maxReplicas &amp;&amp; t - lastScaleAt &gt; 10) {
             scheduleReplica(t, 1, &quot;fallback&quot;);
           }
         } else if (mode === &quot;cold_ai&quot;) {
@@ -1351,12 +1375,16 @@ html&gt;body{padding:0}&lt;/style&gt;
         for (const query of waitQueue) {
           if (mode !== &quot;static&quot; &amp;&amp; !query.breached &amp;&amp; t - query.arrival &gt; maxWaitSeconds) {
             query.breached = true;
+            if (!query.waitRecorded) {
+              visibleWaitTimes.push(maxWaitSeconds);
+              query.waitRecorded = true;
+            }
             failed++;
           }
         }
 
         let guard = 0;
-        while (waitQueue.length &amp;&amp; running.length &lt; replicas * slotsPerReplica &amp;&amp; guard++ &lt; 200) {
+        while (waitQueue.length &amp;&amp; running.length &lt; replicas * modeSlotsPerReplica &amp;&amp; guard++ &lt; 200) {
           const idx = selectIndex(t);
           const query = waitQueue[idx];
           if (!canFit(query)) {
@@ -1369,6 +1397,10 @@ html&gt;body{padding:0}&lt;/style&gt;
             break;
           }
           waitQueue.splice(idx, 1);
+          if (!query.waitRecorded) {
+            visibleWaitTimes.push(t - query.arrival);
+            query.waitRecorded = true;
+          }
           if (!query.breached) {
             waitTimes.push(t - query.arrival);
           }
@@ -1378,6 +1410,10 @@ html&gt;body{padding:0}&lt;/style&gt;
         if (mode === &quot;static&quot; &amp;&amp; waitQueue.length) {
           for (const query of waitQueue) {
             failed++;
+            if (!query.waitRecorded) {
+              visibleWaitTimes.push(0);
+              query.waitRecorded = true;
+            }
             if (query.kind === &quot;heavy&quot;) {
               failedWorkSeconds += Math.max(4, query.duration * 0.22);
             }
@@ -1385,7 +1421,7 @@ html&gt;body{padding:0}&lt;/style&gt;
           waitQueue.length = 0;
         }
 
-        idleReplicaSeconds += Math.max(0, replicas * slotsPerReplica - running.length) / slotsPerReplica;
+        idleReplicaSeconds += Math.max(0, replicas * modeSlotsPerReplica - running.length) / modeSlotsPerReplica * modeReplicaCost;
         series.push({
           t,
           replicas,
@@ -1404,9 +1440,11 @@ html&gt;body{padding:0}&lt;/style&gt;
         metrics: {
           completed,
           failed,
-          p95Wait: percentile(waitTimes, 0.95),
-          p99Wait: percentile(waitTimes, 0.99),
-          avgWait: waitTimes.length ? waitTimes.reduce((a, b) =&gt; a + b, 0) / waitTimes.length : 0,
+          p95Wait: percentile(visibleWaitTimes, 0.95),
+          p99Wait: percentile(visibleWaitTimes, 0.99),
+          avgWait: visibleWaitTimes.length ? visibleWaitTimes.reduce((a, b) =&gt; a + b, 0) / visibleWaitTimes.length : 0,
+          admittedP95Wait: percentile(waitTimes, 0.95),
+          visibleCount: visibleWaitTimes.length,
           wasted: idleReplicaSeconds + failedWorkSeconds / slotsPerReplica
         }
       };
@@ -1540,7 +1578,11 @@ html&gt;body{padding:0}&lt;/style&gt;
         addText(svg, `p95/p99 ${Math.round(run.metrics.p95Wait)}/${Math.round(run.metrics.p99Wait)}s`, 8, y0 + 48, {
           class: &quot;muted&quot;
         });
-        addText(svg, `past SLO ${run.metrics.failed}`, 8, y0 + 64, {
+        const breachPct = run.metrics.visibleCount
+          ? Math.round((run.metrics.failed / run.metrics.visibleCount) * 100)
+          : 0;
+        const breachLabel = run.mode === &quot;static&quot; ? &quot;fail/SLO&quot; : &quot;SLO breach&quot;;
+        addText(svg, `${breachLabel} ${run.metrics.failed} (${breachPct}%)`, 8, y0 + 64, {
           class: &quot;muted&quot;
         });
         addText(svg, `waste ${Math.round(run.metrics.wasted)}`, 8, y0 + 80, {
@@ -1631,7 +1673,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       const coldAiPoint = point(&quot;cold_ai&quot;);
       const learnedAiPoint = point(&quot;learned_ai&quot;);
       detail.textContent =
-        `At ${currentSecond}s: no DLL has ${staticPoint.failed} fail-fast or past-SLO queries; reactive DLL has ${reactivePoint.waiters} waiting; global-prior AI has ${coldAiPoint.waiters} waiting; local-learning AI has ${learnedAiPoint.waiters} waiting and ${learnedAiPoint.replicas} replicas.`;
+        `At ${currentSecond}s: no DLL has ${staticPoint.failed} fail-fast or SLO-breached queries; reactive DLL has ${reactivePoint.waiters} waiting and ${reactivePoint.failed} SLO breaches; global-prior AI has ${coldAiPoint.waiters} waiting and ${coldAiPoint.failed} SLO breaches; local-learning AI has ${learnedAiPoint.waiters} waiting, ${learnedAiPoint.failed} SLO breaches, and ${learnedAiPoint.replicas} replicas.`;
     }
 
     function formatCompact(value) {
@@ -1642,10 +1684,10 @@ html&gt;body{padding:0}&lt;/style&gt;
       if (controls.scenario.value === &quot;observe&quot;) {
         outputs.sourceNote.textContent = &quot;Observed DaaS signal counts and replica-create latency normalized into the same 180s model&quot;;
         calibration.textContent =
-          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. Global-prior AI is conservative, so active replicas may track Reactive while it mainly shapes admission/routing; local-learning AI adds persisted tenant/project history. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
+          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. DLL rows treat overload as wait-SLO breach, not hard query failure. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
       } else {
         outputs.sourceNote.textContent = &quot;Synthetic workload for comparing admission strategies&quot;;
-        calibration.textContent = &quot;Synthetic preset: global-prior AI is conservative, so active replicas may track Reactive while it mainly shapes admission/routing; local-learning AI adds persisted tenant/project history. Extreme load plus slow replica create will still show tail wait when forecast horizon is shorter than create-to-useful-capacity time.&quot;;
+        calibration.textContent = &quot;Synthetic preset: DLL rows treat overload as wait-SLO breach, not hard query failure. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Extreme load plus slow replica create will still show tail wait when forecast horizon is shorter than create-to-useful-capacity time.&quot;;
       }
     }
 
