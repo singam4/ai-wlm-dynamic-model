@@ -915,6 +915,11 @@ html&gt;body{padding:0}&lt;/style&gt;
         &lt;input data-control=&quot;startup&quot; type=&quot;range&quot; min=&quot;20&quot; max=&quot;160&quot; step=&quot;1&quot; value=&quot;48&quot;&gt;
         &lt;output data-output=&quot;startup&quot;&gt;48s&lt;/output&gt;
       &lt;/label&gt;
+      &lt;label&gt;
+        &lt;span&gt;Policy cap&lt;/span&gt;
+        &lt;input data-control=&quot;max-replicas&quot; type=&quot;range&quot; min=&quot;4&quot; max=&quot;64&quot; step=&quot;1&quot; value=&quot;12&quot;&gt;
+        &lt;output data-output=&quot;max-replicas&quot;&gt;12&lt;/output&gt;
+      &lt;/label&gt;
       &lt;button type=&quot;button&quot; data-control=&quot;play&quot; aria-pressed=&quot;true&quot;&gt;Pause&lt;/button&gt;
     &lt;/div&gt;
   &lt;/div&gt;
@@ -1104,17 +1109,18 @@ html&gt;body{padding:0}&lt;/style&gt;
       scenario: root.querySelector(&#x27;[data-control=&quot;scenario&quot;]&#x27;),
       intensity: root.querySelector(&#x27;[data-control=&quot;intensity&quot;]&#x27;),
       startup: root.querySelector(&#x27;[data-control=&quot;startup&quot;]&#x27;),
+      maxReplicas: root.querySelector(&#x27;[data-control=&quot;max-replicas&quot;]&#x27;),
       play: root.querySelector(&#x27;[data-control=&quot;play&quot;]&#x27;)
     };
     const outputs = {
       intensity: root.querySelector(&#x27;[data-output=&quot;intensity&quot;]&#x27;),
       startup: root.querySelector(&#x27;[data-output=&quot;startup&quot;]&#x27;),
+      maxReplicas: root.querySelector(&#x27;[data-output=&quot;max-replicas&quot;]&#x27;),
       sourceNote: root.querySelector(&#x27;[data-output=&quot;source-note&quot;]&#x27;)
     };
 
     const totalSeconds = 180;
     const slotsPerReplica = 8;
-    const maxReplicas = 12;
     const maxWaitSeconds = 75;
     const memPerReplica = 12.5;
     const modes = [
@@ -1267,7 +1273,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
 
       function scheduleReplica(t, count, reason) {
-        let remaining = Math.min(count, maxReplicas - activeAndPending());
+        let remaining = Math.min(count, settings.maxReplicas - activeAndPending());
         const spacing = reason === &quot;forecast&quot; ? 1 : 3;
         while (remaining &gt; 0) {
           pending.push({ readyAt: t + settings.startup + (count - remaining) * spacing, reason });
@@ -1279,7 +1285,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
 
       function scheduleForecastReplicas(meta, desired) {
-        let remaining = Math.min(desired - activeAndPending(), maxReplicas - activeAndPending());
+        let remaining = Math.min(desired - activeAndPending(), settings.maxReplicas - activeAndPending());
         let offset = 0;
         const readyBase = Math.max(0, meta.peak - meta.readyBeforePeak);
         while (remaining &gt; 0) {
@@ -1344,7 +1350,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
         if (mode === &quot;learned_ai&quot;) {
           const meta = scenarioMeta[settings.scenario];
-          const desired = Math.min(maxReplicas, Math.max(1, Math.ceil(meta.aiNeed * settings.intensity * 1.18)));
+          const desired = Math.min(settings.maxReplicas, Math.max(1, Math.ceil(meta.aiNeed * settings.intensity * 1.18)));
           const latestStart = meta.peak - meta.readyBeforePeak - settings.startup;
           if (!prewarmDone &amp;&amp; latestStart &lt; 0) {
             scheduleForecastReplicas(meta, desired);
@@ -1352,7 +1358,7 @@ html&gt;body{padding:0}&lt;/style&gt;
             scheduleReplica(t, Math.max(0, desired - activeAndPending()), &quot;forecast&quot;);
             prewarmDone = true;
           }
-          if (waitQueue.length &gt; modeSlotsPerReplica &amp;&amp; activeAndPending() &lt; maxReplicas &amp;&amp; t - lastScaleAt &gt; 10) {
+          if (waitQueue.length &gt; modeSlotsPerReplica &amp;&amp; activeAndPending() &lt; settings.maxReplicas &amp;&amp; t - lastScaleAt &gt; 10) {
             scheduleReplica(t, 1, &quot;fallback&quot;);
           }
         } else if (mode === &quot;cold_ai&quot;) {
@@ -1360,13 +1366,13 @@ html&gt;body{padding:0}&lt;/style&gt;
           const livePressure = waitQueue.length &gt; Math.max(6, slotsPerReplica * 0.95);
           const riskyShape = heavyWaiters &gt;= Math.max(3, slotsPerReplica * 0.38);
           if ((livePressure || riskyShape)
-            &amp;&amp; activeAndPending() &lt; maxReplicas
+            &amp;&amp; activeAndPending() &lt; settings.maxReplicas
             &amp;&amp; t - lastScaleAt &gt; Math.max(9, settings.startup * 0.42)) {
             scheduleReplica(t, 1, &quot;global-prior&quot;);
           }
         } else if (mode === &quot;reactive&quot;) {
           if (waitQueue.length &gt; Math.max(3, slotsPerReplica * 0.6)
-            &amp;&amp; activeAndPending() &lt; maxReplicas
+            &amp;&amp; activeAndPending() &lt; settings.maxReplicas
             &amp;&amp; t - lastScaleAt &gt; Math.max(9, settings.startup * 0.45)) {
             scheduleReplica(t, 1, &quot;waiters&quot;);
           }
@@ -1440,6 +1446,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         metrics: {
           completed,
           failed,
+          endWaiters: waitQueue.length,
           p95Wait: percentile(visibleWaitTimes, 0.95),
           p99Wait: percentile(visibleWaitTimes, 0.99),
           avgWait: visibleWaitTimes.length ? visibleWaitTimes.reduce((a, b) =&gt; a + b, 0) / visibleWaitTimes.length : 0,
@@ -1454,7 +1461,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       const settings = {
         scenario: controls.scenario.value,
         intensity: Number(controls.intensity.value),
-        startup: Number(controls.startup.value)
+        startup: Number(controls.startup.value),
+        maxReplicas: Number(controls.maxReplicas.value)
       };
       const workload = generateWorkload(settings.scenario, settings.intensity);
       return {
@@ -1511,7 +1519,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
       const width = Math.max(360, Math.round(root.getBoundingClientRect().width || 740));
       const top = 24;
-      const rowHeight = 86;
+      const rowHeight = 104;
       const rowGap = 18;
       const plotBottom = top + modes.length * rowHeight + (modes.length - 1) * rowGap;
       const height = plotBottom + 36;
@@ -1566,7 +1574,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         const frameHeight = 70;
         const base = y0 + frameHeight;
         const yWait = value =&gt; base - Math.min(1, value / maxWaiters) * (frameHeight - 10);
-        const yReplicas = value =&gt; base - Math.min(1, value / maxReplicas) * (frameHeight - 10);
+        const yReplicas = value =&gt; base - Math.min(1, value / model.settings.maxReplicas) * (frameHeight - 10);
         const yRunning = value =&gt; base - Math.min(1, value / maxRunning) * (frameHeight - 10);
 
         addText(svg, modes[rowIndex].label, 8, y0 + 14, {
@@ -1585,7 +1593,10 @@ html&gt;body{padding:0}&lt;/style&gt;
         addText(svg, `${breachLabel} ${run.metrics.failed} (${breachPct}%)`, 8, y0 + 64, {
           class: &quot;muted&quot;
         });
-        addText(svg, `waste ${Math.round(run.metrics.wasted)}`, 8, y0 + 80, {
+        addText(svg, `waiting @180s ${run.metrics.endWaiters}`, 8, y0 + 80, {
+          class: &quot;muted&quot;
+        });
+        addText(svg, `waste ${Math.round(run.metrics.wasted)}`, 8, y0 + 96, {
           class: &quot;muted&quot;
         });
 
@@ -1684,16 +1695,17 @@ html&gt;body{padding:0}&lt;/style&gt;
       if (controls.scenario.value === &quot;observe&quot;) {
         outputs.sourceNote.textContent = &quot;Observed DaaS signal counts and replica-create latency normalized into the same 180s model&quot;;
         calibration.textContent =
-          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. DLL rows treat overload as wait-SLO breach, not hard query failure. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
+          `${observedSample.window}: ${formatCompact(observedSample.emsWaiterLogs)} waiter, ${formatCompact(observedSample.emsCreateSubEngineLogs)} create-sub-engine, ${formatCompact(observedSample.emsDeleteSubEngineLogs)} delete-sub-engine lines. ${observedSample.startupWindow}: ${formatCompact(observedSample.startupStarts)} total, p50/p95/p99 ${observedSample.startupP50Seconds}/${observedSample.startupP95Seconds}/${observedSample.startupP99Seconds}s. Demand additional scale-up: ${formatCompact(observedSample.demandScaleCreates)}, ${observedSample.demandScaleP50Seconds}/${observedSample.demandScaleP95Seconds}/${observedSample.demandScaleP99Seconds}s; non-demand/min/other: ${formatCompact(observedSample.otherCreates)}, ${observedSample.otherP50Seconds}/${observedSample.otherP95Seconds}/${observedSample.otherP99Seconds}s. DLL rows treat overload as wait-SLO breach, not hard query failure. Waiting @180s is unserved work inside this bounded window; raise Policy cap to test Cloud capacity-policy headroom. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Use 5x-8x for high adoption and 10x-20x for SAP stress.`;
       } else {
         outputs.sourceNote.textContent = &quot;Synthetic workload for comparing admission strategies&quot;;
-        calibration.textContent = &quot;Synthetic preset: DLL rows treat overload as wait-SLO breach, not hard query failure. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Extreme load plus slow replica create will still show tail wait when forecast horizon is shorter than create-to-useful-capacity time.&quot;;
+        calibration.textContent = &quot;Synthetic preset: DLL rows treat overload as wait-SLO breach, not hard query failure. Waiting @180s is unserved work inside this bounded window; raise Policy cap to test Cloud capacity-policy headroom. Global-prior AI is conservative; wait improvement on similar replicas assumes an admission/routing hook, otherwise it should track Reactive. Local-learning AI assumes recurring workload evidence can pre-warm before the chart window and route known risky shapes to a historically successful capacity class. Extreme load plus slow replica create will still show tail wait when forecast horizon is shorter than create-to-useful-capacity time.&quot;;
       }
     }
 
     function recompute() {
       outputs.intensity.textContent = `${Number(controls.intensity.value).toFixed(1)}x`;
       outputs.startup.textContent = `${controls.startup.value}s`;
+      outputs.maxReplicas.textContent = controls.maxReplicas.value;
       updateCalibrationText();
       model = simulate();
       currentSecond = Math.min(currentSecond, totalSeconds);
@@ -1714,6 +1726,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     });
     controls.intensity.addEventListener(&quot;input&quot;, recompute);
     controls.startup.addEventListener(&quot;input&quot;, recompute);
+    controls.maxReplicas.addEventListener(&quot;input&quot;, recompute);
     controls.play.addEventListener(&quot;click&quot;, () =&gt; {
       playing = !playing;
       controls.play.textContent = playing ? &quot;Pause&quot; : &quot;Run&quot;;
